@@ -1,0 +1,8 @@
+# This file lists the Python dependencies for the project.
+# You can install them all by running: pip install -r requirements.txt
+
+# Although the current data scripts only use standard libraries, a typical
+# TinyML project workflow involves these packages for training and data handling.
+tensorflow
+numpy
+Pillow
