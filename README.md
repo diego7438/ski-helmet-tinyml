@@ -11,31 +11,6 @@ SkiSafe is a wearable TinyML system for ski helmets, designed to detect approach
 
 ---
 
-## Technical Highlights & Progress
-
-### Phase II: Real-World Robustness (March 8, 2026)
-- **Domain Adaptation & Edge Validation:** Evolved the model beyond ski-slope datasets for flawless performance in any environment.
-- **Feature Bias Neutralization:** Diagnosed and eliminated feature bias, teaching the model to recognize a *person* rather than just *ski gear*.
-- **Human Base Layer:** Integrated INRIA Person Dataset to fortify the model's understanding of human form.
-- **Unified Person Classification:** Streamlined on-device logic for optimal firmware performance.
-- **Performance Metrics:**
-    - Validation F1 Score: **73.4%**
-    - Recall: **84.3%**
-    - Precision: **66%** (next target for improvement)
-- **Edge Efficiency:** Model footprint confirmed at **~119KB RAM**, well within Cortex-M4 constraints.
-
-### Phase I: Mission Accomplished (March 7, 2026)
-- **Dataset Calibration:** Resolved coordinate system mismatches in EPFL Ski-2DPose dataset with a custom Python calibration script.
-- **Architecture Choice:** Selected FOMO (MobileNetV2 variant) for memory efficiency.
-- **Input Pipeline:** Engineered 96x96 grayscale input for RAM optimization.
-- **Quantization:** Achieved `int8` quantization, reducing model size to **119.4KB**.
-- **Validation & Proof of Concept:**
-    - Test Set F1 Score: **73.3%** (no overfitting)
-    - On-device inference: **718ms**
-    - Successful live edge inference in novel environments.
-
----
-
 ## Tech Stack
 - **AI:** FOMO (Faster Objects, More Objects), MobileNetV2, TensorFlow Lite
 - **Tools:** Edge Impulse, Python (Data Calibration)
