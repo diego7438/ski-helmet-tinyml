@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkiSafe — Model Dashboard v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ice: #e8f4f8;
+    --snow: #f5fafc;
+    --glacier: #a8d8ea;
+    --deep-blue: #0a1628;
+    --mid-blue: #112240;
+    --slope: #1a3a5c;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --pine: #2d6a4f;
+    --warn: #ff9f1c;
+    --danger: #e63946;
+    --success: #52b788;
+    --text-primary: #e8f4f8;
+    --text-muted: #7a9bb5;
+    --card-bg: rgba(17, 34, 64, 0.85);
+    --card-border: rgba(0, 212, 255, 0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--deep-blue);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 45vh;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 400'%3E%3Cpolygon points='0,400 180,80 320,200 500,20 680,180 820,60 1000,220 1180,40 1340,160 1440,80 1440,400' fill='%230d1f3c'/%3E%3Cpolygon points='0,400 150,160 280,260 420,100 560,240 700,120 880,280 1020,100 1160,200 1300,80 1440,160 1440,400' fill='%23112240'/%3E%3C/svg%3E") bottom/cover no-repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .snowflakes { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; overflow:hidden; }
+  .snowflake { position:absolute; top:-10px; color:rgba(168,216,234,0.4); animation:fall linear infinite; }
+  @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity:0; } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; position: relative; z-index: 2; }
+
+  /* Header */
+  .header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--card-border); animation:slideDown 0.6s ease; }
+  .logo { display:flex; align-items:center; gap:1rem; }
+  .logo-icon { font-size:2.5rem; filter:drop-shadow(0 0 12px var(--accent)); }
+  .logo-text h1 { font-family:'Bebas Neue',sans-serif; font-size:3rem; letter-spacing:4px; background:linear-gradient(135deg,var(--accent),var(--glacier)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1; }
+  .logo-text p { font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--text-muted); letter-spacing:3px; text-transform:uppercase; margin-top:2px; }
+  .version-badge { font-family:'DM Mono',monospace; font-size:0.65rem; background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.2); border-radius:99px; padding:0.25rem 0.75rem; color:var(--accent); }
+
+  /* Cards */
+  .card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:1.4rem; backdrop-filter:blur(12px); }
+  .card-title { font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:3px; color:var(--text-muted); margin-bottom:1rem; }
+
+  /* Input section */
+  .input-section { animation:fadeIn 0.7s ease 0.2s both; margin-bottom:2rem; }
+  .input-label { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:3px; color:var(--accent); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem; }
+  textarea, input[type=text], input[type=number], select {
+    width:100%; background:rgba(10,22,40,0.8); border:1px solid rgba(0,212,255,0.2); border-radius:10px;
+    color:var(--text-primary); font-family:'DM Mono',monospace; font-size:0.75rem; padding:0.75rem 1rem; outline:none; transition:border-color 0.2s;
+  }
+  textarea { height:110px; resize:vertical; }
+  textarea:focus, input:focus, select:focus { border-color:var(--accent); }
+  textarea::placeholder, input::placeholder { color:var(--text-muted); }
+  select option { background:var(--mid-blue); color:var(--text-primary); }
+
+  .btn-row { display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap; }
+  .btn { font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:1rem; padding:0.6rem 1.8rem; border-radius:8px; border:none; cursor:pointer; transition:all 0.2s; }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),#0099cc); color:var(--deep-blue); }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,212,255,0.4); }
+  .btn-success { background:linear-gradient(135deg,var(--success),#3a9d6e); color:var(--deep-blue); }
+  .btn-success:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(82,183,136,0.4); }
+  .btn-secondary { background:transparent; border:1px solid var(--card-border); color:var(--text-muted); }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+
+  .error-msg { background:rgba(230,57,70,0.15); border:1px solid rgba(230,57,70,0.4); border-radius:8px; padding:0.75rem 1rem; color:#ff8a93; font-family:'DM Mono',monospace; font-size:0.8rem; margin-top:0.75rem; display:none; }
+  .success-msg { background:rgba(82,183,136,0.15); border:1px solid rgba(82,183,136,0.4); border-radius:8px; padding:0.75rem 1rem; color:var(--success); font-family:'DM Mono',monospace; font-size:0.8rem; margin-top:0.75rem; display:none; }
+
+  /* Section title */
+  .section-title { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:4px; color:var(--text-muted); margin:2rem 0 1rem; display:flex; align-items:center; gap:0.75rem; }
+  .section-title::after { content:''; flex:1; height:1px; background:var(--card-border); }
+
+  /* Split toggle */
+  .split-toggle { display:flex; gap:0.5rem; margin-bottom:1.5rem; }
+  .toggle-btn { font-family:'Bebas Neue',sans-serif; letter-spacing:2px; font-size:0.95rem; padding:0.45rem 1.4rem; border-radius:6px; border:1px solid var(--card-border); background:transparent; color:var(--text-muted); cursor:pointer; transition:all 0.2s; }
+  .toggle-btn.active { background:var(--accent); color:var(--deep-blue); border-color:var(--accent); }
+
+  /* Metrics grid */
+  .metrics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+  @media(max-width:640px) { .metrics-grid { grid-template-columns:1fr; } }
+  .metric-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:1.4rem 1.2rem; backdrop-filter:blur(12px); position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
+  .metric-card:hover { transform:translateY(-3px); box-shadow:0 8px 30px rgba(0,212,255,0.1); }
+  .metric-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:16px 16px 0 0; }
+  .metric-card.recall::before { background:linear-gradient(90deg,var(--success),var(--accent)); }
+  .metric-card.precision::before { background:linear-gradient(90deg,var(--warn),var(--accent2)); }
+  .metric-card.f1::before { background:linear-gradient(90deg,var(--glacier),var(--accent)); }
+  .metric-label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.5rem; }
+  .metric-value { font-family:'Bebas Neue',sans-serif; font-size:3.2rem; line-height:1; letter-spacing:2px; }
+  .metric-value.good { color:var(--success); }
+  .metric-value.warn { color:var(--warn); }
+  .metric-value.bad { color:var(--danger); }
+  .metric-bar-wrap { margin-top:0.75rem; background:rgba(255,255,255,0.06); border-radius:99px; height:5px; overflow:hidden; }
+  .metric-bar { height:100%; border-radius:99px; transition:width 1s cubic-bezier(0.4,0,0.2,1); }
+  .recall .metric-bar { background:linear-gradient(90deg,var(--success),var(--accent)); }
+  .precision .metric-bar { background:linear-gradient(90deg,var(--warn),var(--accent2)); }
+  .f1 .metric-bar { background:linear-gradient(90deg,var(--glacier),var(--accent)); }
+  .metric-goal { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--text-muted); margin-top:0.5rem; }
+  .metric-goal span { color:var(--accent); }
+
+  /* Matrix + compare */
+  .matrix-section { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+  @media(max-width:640px) { .matrix-section { grid-template-columns:1fr; } }
+  .cm-grid { display:grid; grid-template-columns:auto 1fr 1fr; gap:4px; font-family:'DM Mono',monospace; font-size:0.75rem; }
+  .cm-header { color:var(--text-muted); text-align:center; padding:0.4rem; font-size:0.6rem; letter-spacing:1px; }
+  .cm-row-label { color:var(--text-muted); display:flex; align-items:center; padding-right:0.5rem; font-size:0.6rem; }
+  .cm-cell { border-radius:8px; padding:0.75rem 0.5rem; text-align:center; font-size:1rem; font-weight:500; transition:transform 0.2s; }
+  .cm-cell:hover { transform:scale(1.05); }
+  .cm-tp { background:rgba(82,183,136,0.25); color:var(--success); border:1px solid rgba(82,183,136,0.3); }
+  .cm-tn { background:rgba(82,183,136,0.15); color:var(--success); border:1px solid rgba(82,183,136,0.2); }
+  .cm-fp { background:rgba(255,159,28,0.2); color:var(--warn); border:1px solid rgba(255,159,28,0.3); }
+  .cm-fn { background:rgba(230,57,70,0.2); color:var(--danger); border:1px solid rgba(230,57,70,0.3); }
+  .cm-label { font-size:0.55rem; color:var(--text-muted); margin-top:2px; }
+  .model-compare { display:flex; gap:0.75rem; flex-direction:column; }
+  .model-row { display:flex; align-items:center; gap:0.75rem; }
+  .model-tag { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:1px; padding:0.2rem 0.5rem; border-radius:4px; min-width:52px; text-align:center; }
+  .tag-int8 { background:rgba(0,212,255,0.15); color:var(--accent); border:1px solid rgba(0,212,255,0.3); }
+  .tag-f32 { background:rgba(168,216,234,0.1); color:var(--glacier); border:1px solid rgba(168,216,234,0.2); }
+  .model-bar-wrap { flex:1; background:rgba(255,255,255,0.06); border-radius:99px; height:8px; overflow:hidden; }
+  .model-bar-fill { height:100%; border-radius:99px; transition:width 1s cubic-bezier(0.4,0,0.2,1); }
+  .fill-int8 { background:linear-gradient(90deg,var(--accent),#0099cc); }
+  .fill-f32 { background:linear-gradient(90deg,var(--glacier),#6ab8d4); }
+  .model-pct { font-family:'DM Mono',monospace; font-size:0.75rem; min-width:42px; text-align:right; color:var(--text-primary); }
+  .model-metric-label { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:0.4rem; margin-top:0.75rem; }
+  .accuracy-pill { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(82,183,136,0.1); border:1px solid rgba(82,183,136,0.25); border-radius:99px; padding:0.3rem 0.9rem; font-family:'DM Mono',monospace; font-size:0.75rem; color:var(--success); margin-top:0.5rem; }
+
+  /* Goal banner */
+  .goal-banner { background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(82,183,136,0.08)); border:1px solid rgba(0,212,255,0.2); border-radius:12px; padding:1rem 1.4rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .goal-icon { font-size:1.5rem; }
+  .goal-text { font-family:'DM Sans',sans-serif; font-size:0.85rem; color:var(--text-muted); }
+  .goal-text strong { color:var(--text-primary); }
+  .goal-progress { margin-left:auto; text-align:right; }
+  .goal-progress .pct { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--accent); letter-spacing:2px; }
+  .goal-progress .sub { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--text-muted); letter-spacing:2px; }
+
+  /* Log form */
+  .log-form { animation:fadeIn 0.5s ease; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  @media(max-width:640px) { .form-grid { grid-template-columns:1fr; } }
+  .form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  @media(max-width:640px) { .form-grid-3 { grid-template-columns:1fr; } }
+  .field-label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:2px; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem; }
+  .field-group { display:flex; flex-direction:column; }
+  .prefilled { border-color:rgba(0,212,255,0.35) !important; background:rgba(0,212,255,0.05) !important; }
+  .prefilled-badge { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--accent); margin-top:0.3rem; }
+
+  /* CSV preview */
+  .csv-preview { background:rgba(10,22,40,0.9); border:1px solid rgba(0,212,255,0.15); border-radius:10px; padding:1rem; font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--text-muted); word-break:break-all; line-height:1.6; margin-top:1rem; display:none; }
+  .csv-preview .csv-header { color:var(--accent); margin-bottom:0.4rem; font-size:0.6rem; letter-spacing:2px; }
+
+  /* R script section */
+  .r-script { background:rgba(10,22,40,0.9); border:1px solid rgba(82,183,136,0.2); border-radius:10px; padding:1.2rem; font-family:'DM Mono',monospace; font-size:0.72rem; color:#a8d8b0; line-height:1.8; white-space:pre-wrap; }
+  .r-comment { color:var(--text-muted); }
+
+  .footer { text-align:center; font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--text-muted); letter-spacing:2px; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--card-border); }
+
+  #dashboard { display:none; }
+  #dashboard.visible { display:block; animation:fadeIn 0.5s ease; }
+  #logSection { display:none; }
+  #logSection.visible { display:block; animation:fadeIn 0.5s ease; }
+</style>
+</head>
+<body>
+
+<div class="snowflakes" id="snowflakes"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⛷️</div>
+      <div class="logo-text">
+        <h1>SkiSafe</h1>
+        <p>Model Performance Dashboard</p>
+      </div>
+    </div>
+    <div class="version-badge">v2.0 — Run Logger</div>
+  </div>
+
+  <!-- Step 1: Paste JSON -->
+  <div class="input-section card">
+    <div class="input-label">📋 Step 1 — Paste Edge Impulse JSON</div>
+    <textarea id="jsonInput" placeholder="Paste your Edge Impulse model testing JSON here..."></textarea>
+    <div class="error-msg" id="errorMsg">⚠️ Invalid JSON — double check your paste and try again.</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="parseAndRender()">ANALYZE RESULTS</button>
+      <button class="btn btn-secondary" onclick="loadSample()">LOAD SAMPLE</button>
+      <button class="btn btn-secondary" onclick="clearAll()">CLEAR</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+
+    <div class="goal-banner">
+      <div class="goal-icon">🎯</div>
+      <div class="goal-text"><strong>Mission:</strong> Push Human Detection Recall above <strong>85%</strong> on test data</div>
+      <div class="goal-progress">
+        <div class="pct" id="goalPct">—</div>
+        <div class="sub">OF GOAL</div>
+      </div>
+    </div>
+
+    <div class="split-toggle">
+      <button class="toggle-btn active" onclick="setView('test')" id="btn-test">TEST SET</button>
+      <button class="toggle-btn" onclick="setView('validation')" id="btn-validation">VALIDATION SET</button>
+    </div>
+
+    <div class="section-title">KEY METRICS — HUMAN CLASS</div>
+    <div class="metrics-grid">
+      <div class="metric-card recall">
+        <div class="metric-label">🎯 Recall (int8)</div>
+        <div class="metric-value" id="recallVal">—</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" id="recallBar" style="width:0%"></div></div>
+        <div class="metric-goal">Goal: <span>85%</span></div>
+      </div>
+      <div class="metric-card precision">
+        <div class="metric-label">🔍 Precision (int8)</div>
+        <div class="metric-value" id="precisionVal">—</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" id="precisionBar" style="width:0%"></div></div>
+        <div class="metric-goal">Fewer false alarms = higher</div>
+      </div>
+      <div class="metric-card f1">
+        <div class="metric-label">⚖️ F1 Score (int8)</div>
+        <div class="metric-value" id="f1Val">—</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" id="f1Bar" style="width:0%"></div></div>
+        <div class="metric-goal">Balance of recall & precision</div>
+      </div>
+    </div>
+
+    <div class="matrix-section">
+      <div class="card">
+        <div class="card-title">CONFUSION MATRIX — INT8</div>
+        <div class="cm-grid">
+          <div></div>
+          <div class="cm-header">PRED: BG</div>
+          <div class="cm-header">PRED: HUMAN</div>
+          <div class="cm-row-label">ACT: BG</div>
+          <div class="cm-cell cm-tn"><div id="cm-tn-val">—</div><div class="cm-label">TRUE NEG</div></div>
+          <div class="cm-cell cm-fp"><div id="cm-fp-val">—</div><div class="cm-label">FALSE POS</div></div>
+          <div class="cm-row-label">ACT: HUMAN</div>
+          <div class="cm-cell cm-fn"><div id="cm-fn-val">—</div><div class="cm-label">FALSE NEG ⚠️</div></div>
+          <div class="cm-cell cm-tp"><div id="cm-tp-val">—</div><div class="cm-label">TRUE POS ✅</div></div>
+        </div>
+        <div style="margin-top:1rem;"><div class="accuracy-pill" id="accPill">Accuracy: —</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">INT8 VS FLOAT32</div>
+        <div class="model-compare">
+          <div class="model-metric-label">RECALL</div>
+          <div class="model-row"><span class="model-tag tag-int8">INT8</span><div class="model-bar-wrap"><div class="model-bar-fill fill-int8" id="r-int8" style="width:0%"></div></div><span class="model-pct" id="r-int8-val">—</span></div>
+          <div class="model-row"><span class="model-tag tag-f32">F32</span><div class="model-bar-wrap"><div class="model-bar-fill fill-f32" id="r-f32" style="width:0%"></div></div><span class="model-pct" id="r-f32-val">—</span></div>
+          <div class="model-metric-label">PRECISION</div>
+          <div class="model-row"><span class="model-tag tag-int8">INT8</span><div class="model-bar-wrap"><div class="model-bar-fill fill-int8" id="p-int8" style="width:0%"></div></div><span class="model-pct" id="p-int8-val">—</span></div>
+          <div class="model-row"><span class="model-tag tag-f32">F32</span><div class="model-bar-wrap"><div class="model-bar-fill fill-f32" id="p-f32" style="width:0%"></div></div><span class="model-pct" id="p-f32-val">—</span></div>
+          <div class="model-metric-label">F1</div>
+          <div class="model-row"><span class="model-tag tag-int8">INT8</span><div class="model-bar-wrap"><div class="model-bar-fill fill-int8" id="f-int8" style="width:0%"></div></div><span class="model-pct" id="f-int8-val">—</span></div>
+          <div class="model-row"><span class="model-tag tag-f32">F32</span><div class="model-bar-wrap"><div class="model-bar-fill fill-f32" id="f-f32" style="width:0%"></div></div><span class="model-pct" id="f-f32-val">—</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Step 2: Log This Run -->
+  <div id="logSection">
+    <div class="section-title">LOG THIS RUN</div>
+    <div class="card log-form">
+      <div class="card-title">📋 Step 2 — Fill In Run Details & Export CSV</div>
+
+      <div class="form-grid">
+        <div class="field-group">
+          <div class="field-label">Run Type</div>
+          <select id="runType">
+            <option value="Retrain Model">Retrain Model</option>
+            <option value="Model Testing">Model Testing</option>
+            <option value="Object Detection / Label Fix">Object Detection / Label Fix</option>
+            <option value="Added Negative Samples">Added Negative Samples</option>
+            <option value="Added Positive Samples">Added Positive Samples</option>
+            <option value="Full Audit + Retrain">Full Audit + Retrain</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Notes (what changed this run?)</div>
+          <input type="text" id="notes" placeholder="e.g. Fixed 200 labels, added 100 negatives...">
+        </div>
+      </div>
+
+      <!-- Auto-filled from JSON -->
+      <div class="card-title" style="margin-top:1rem;">AUTO-FILLED FROM JSON <span style="color:var(--accent);font-size:0.7rem;">— editable</span></div>
+      <div class="form-grid-3">
+        <div class="field-group">
+          <div class="field-label">Test Recall (int8)</div>
+          <input type="number" id="f_test_recall_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Test Precision (int8)</div>
+          <input type="number" id="f_test_precision_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Test F1 (int8)</div>
+          <input type="number" id="f_test_f1_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Val Recall (int8)</div>
+          <input type="number" id="f_val_recall_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Val Precision (int8)</div>
+          <input type="number" id="f_val_precision_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Val F1 (int8)</div>
+          <input type="number" id="f_val_f1_int8" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Test Recall (f32)</div>
+          <input type="number" id="f_test_recall_f32" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Test Precision (f32)</div>
+          <input type="number" id="f_test_precision_f32" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Test F1 (f32)</div>
+          <input type="number" id="f_test_f1_f32" step="0.001" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+      </div>
+
+      <!-- Confusion matrix fields -->
+      <div class="card-title" style="margin-top:1rem;">CONFUSION MATRIX — TEST SET (INT8)</div>
+      <div class="form-grid">
+        <div class="field-group">
+          <div class="field-label">True Negatives (TN)</div>
+          <input type="number" id="f_test_cm_tn" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">False Positives (FP)</div>
+          <input type="number" id="f_test_cm_fp" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">False Negatives (FN) ⚠️</div>
+          <input type="number" id="f_test_cm_fn" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">True Positives (TP) ✅</div>
+          <input type="number" id="f_test_cm_tp" class="prefilled">
+          <div class="prefilled-badge">⚡ from JSON</div>
+        </div>
+      </div>
+
+      <!-- Manual fields -->
+      <div class="card-title" style="margin-top:1rem;">ON-DEVICE PERFORMANCE <span style="color:var(--warn);font-size:0.7rem;">— manual entry</span></div>
+      <div class="form-grid-3">
+        <div class="field-group">
+          <div class="field-label">Inferencing Time (ms)</div>
+          <input type="number" id="f_inferencing_ms" placeholder="e.g. 789">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Peak RAM (KB)</div>
+          <input type="number" id="f_peak_ram_kb" placeholder="e.g. 119.4" step="0.1">
+        </div>
+        <div class="field-group">
+          <div class="field-label">Flash Usage (KB)</div>
+          <input type="number" id="f_flash_kb" placeholder="e.g. 80.9" step="0.1">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="exportCSV()">⬇️ EXPORT CSV ROW</button>
+        <button class="btn btn-secondary" onclick="togglePreview()">PREVIEW CSV</button>
+      </div>
+      <div class="success-msg" id="successMsg">✅ CSV row downloaded! Append it to your skisafe_runs.csv file.</div>
+      <div class="csv-preview" id="csvPreview">
+        <div class="csv-header">CSV PREVIEW</div>
+        <div id="csvPreviewContent"></div>
+      </div>
+    </div>
+
+    <!-- R Script -->
+    <div class="section-title">R VISUALIZATION SCRIPT</div>
+    <div class="card">
+      <div class="card-title">📊 PASTE THIS INTO RSTUDIO</div>
+      <div class="r-script"><span class="r-comment"># SkiSafe — Model Progress Tracker
+# Run this after appending new CSV rows to skisafe_runs.csv</span>
+
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+
+<span class="r-comment"># Load your run log</span>
+runs &lt;- read_csv("skisafe_runs.csv")
+runs$date &lt;- as.Date(runs$date)
+runs$run_number &lt;- seq_len(nrow(runs))
+
+<span class="r-comment"># Plot 1: Recall over time (most important!)</span>
+p1 &lt;- ggplot(runs, aes(x=run_number, y=test_recall_int8)) +
+  geom_line(color="#00d4ff", linewidth=1.2) +
+  geom_point(color="#00d4ff", size=3) +
+  geom_hline(yintercept=0.85, linetype="dashed", color="#e63946", linewidth=0.8) +
+  annotate("text", x=1, y=0.86, label="Goal: 85%", color="#e63946", size=3, hjust=0) +
+  geom_text(aes(label=run_type), vjust=-1.2, size=2.5, color="#7a9bb5") +
+  scale_y_continuous(limits=c(0,1), labels=scales::percent) +
+  labs(title="Test Recall (int8) Over Time", x="Run #", y="Recall") +
+  theme_dark() +
+  theme(plot.background=element_rect(fill="#0a1628"), panel.background=element_rect(fill="#112240"),
+        text=element_text(color="#e8f4f8"), axis.text=element_text(color="#7a9bb5"))
+
+<span class="r-comment"># Plot 2: Precision vs Recall tradeoff</span>
+p2 &lt;- ggplot(runs, aes(x=test_precision_int8, y=test_recall_int8, color=run_number)) +
+  geom_point(size=4) +
+  geom_path(linewidth=0.8) +
+  geom_hline(yintercept=0.85, linetype="dashed", color="#e63946") +
+  scale_color_gradient(low="#112240", high="#00d4ff") +
+  scale_x_continuous(limits=c(0,1), labels=scales::percent) +
+  scale_y_continuous(limits=c(0,1), labels=scales::percent) +
+  labs(title="Precision vs Recall Tradeoff", x="Precision", y="Recall", color="Run #") +
+  theme_dark() +
+  theme(plot.background=element_rect(fill="#0a1628"), panel.background=element_rect(fill="#112240"),
+        text=element_text(color="#e8f4f8"), axis.text=element_text(color="#7a9bb5"))
+
+<span class="r-comment"># Plot 3: F1 over time</span>
+p3 &lt;- ggplot(runs, aes(x=run_number, y=test_f1_int8)) +
+  geom_line(color="#52b788", linewidth=1.2) +
+  geom_point(color="#52b788", size=3) +
+  scale_y_continuous(limits=c(0,1), labels=scales::percent) +
+  labs(title="F1 Score Over Time", x="Run #", y="F1") +
+  theme_dark() +
+  theme(plot.background=element_rect(fill="#0a1628"), panel.background=element_rect(fill="#112240"),
+        text=element_text(color="#e8f4f8"), axis.text=element_text(color="#7a9bb5"))
+
+<span class="r-comment"># Combine with patchwork</span>
+(p1 / (p2 | p3)) +
+  plot_annotation(title="SkiSafe Model Progress", theme=theme(plot.background=element_rect(fill="#0a1628"), title=element_text(color="#e8f4f8")))</div>
+    </div>
+  </div>
+
+  <div class="footer">SKISAFE — TINYML HUMAN DETECTION — EDGE IMPULSE DASHBOARD V2</div>
+</div>
+
+<script>
+  // Snow
+  const sf=document.getElementById('snowflakes');
+  for(let i=0;i<18;i++){const s=document.createElement('div');s.className='snowflake';s.textContent='❄';s.style.left=Math.random()*100+'vw';s.style.animationDuration=(6+Math.random()*10)+'s';s.style.animationDelay=(-Math.random()*15)+'s';s.style.fontSize=(0.5+Math.random()*0.8)+'em';s.style.opacity=0.2+Math.random()*0.4;sf.appendChild(s);}
+
+  let parsedData=null, currentView='test';
+
+  function setView(v){
+    currentView=v;
+    document.getElementById('btn-test').className='toggle-btn'+(v==='test'?' active':'');
+    document.getElementById('btn-validation').className='toggle-btn'+(v==='validation'?' active':'');
+    if(parsedData) renderDashboard(parsedData);
+  }
+
+  function pctNum(n){ return parseFloat((n*100).toFixed(1)); }
+  function colorClass(val,goal=85){ return val>=goal?'good':val>=65?'warn':'bad'; }
+
+  function parseAndRender(){
+    const raw=document.getElementById('jsonInput').value.trim();
+    const err=document.getElementById('errorMsg');
+    err.style.display='none';
+    if(!raw){err.textContent='⚠️ Nothing pasted yet!';err.style.display='block';return;}
+    try{
+      const data=JSON.parse(raw);
+      parsedData=data;
+      renderDashboard(data);
+      prefillForm(data);
+      document.getElementById('dashboard').className='visible';
+      document.getElementById('logSection').className='visible';
+    }catch(e){err.style.display='block';}
+  }
+
+  function renderDashboard(data){
+    const split=currentView==='test'?data.test:data.validation;
+    if(!split) return;
+    const int8=split.int8, f32=split.float32, nb=int8.non_background;
+    const recallPct=pctNum(nb.recall), precPct=pctNum(nb.precision), f1Pct=pctNum(nb.f1);
+
+    document.getElementById('recallVal').textContent=recallPct+'%';
+    document.getElementById('recallVal').className='metric-value '+colorClass(recallPct,85);
+    document.getElementById('precisionVal').textContent=precPct+'%';
+    document.getElementById('precisionVal').className='metric-value '+colorClass(precPct,70);
+    document.getElementById('f1Val').textContent=f1Pct+'%';
+    document.getElementById('f1Val').className='metric-value '+colorClass(f1Pct,75);
+    setTimeout(()=>{
+      document.getElementById('recallBar').style.width=recallPct+'%';
+      document.getElementById('precisionBar').style.width=precPct+'%';
+      document.getElementById('f1Bar').style.width=f1Pct+'%';
+    },50);
+
+    document.getElementById('goalPct').textContent=Math.min((recallPct/85*100).toFixed(0),100)+'%';
+
+    const cm=int8.confusion_matrix;
+    document.getElementById('cm-tn-val').textContent=cm[0][0].toLocaleString();
+    document.getElementById('cm-fp-val').textContent=cm[0][1].toLocaleString();
+    document.getElementById('cm-fn-val').textContent=cm[1][0].toLocaleString();
+    document.getElementById('cm-tp-val').textContent=cm[1][1].toLocaleString();
+    document.getElementById('accPill').textContent='✅ Overall Accuracy: '+pctNum(int8.classification_report.accuracy)+'%';
+
+    const ri=pctNum(nb.recall),rf=pctNum(f32.non_background.recall);
+    const pi=pctNum(nb.precision),pf=pctNum(f32.non_background.precision);
+    const fi=pctNum(nb.f1),ff=pctNum(f32.non_background.f1);
+    setTimeout(()=>{
+      ['r-int8','r-f32','p-int8','p-f32','f-int8','f-f32'].forEach((id,i)=>{
+        document.getElementById(id).style.width=[ri,rf,pi,pf,fi,ff][i]+'%';
+      });
+    },100);
+    document.getElementById('r-int8-val').textContent=ri+'%';
+    document.getElementById('r-f32-val').textContent=rf+'%';
+    document.getElementById('p-int8-val').textContent=pi+'%';
+    document.getElementById('p-f32-val').textContent=pf+'%';
+    document.getElementById('f-int8-val').textContent=fi+'%';
+    document.getElementById('f-f32-val').textContent=ff+'%';
+  }
+
+  function prefillForm(data){
+    const t=data.test, v=data.validation;
+    if(t){
+      const ti=t.int8, tf=t.float32, cm=ti.confusion_matrix;
+      document.getElementById('f_test_recall_int8').value=ti.non_background.recall.toFixed(4);
+      document.getElementById('f_test_precision_int8').value=ti.non_background.precision.toFixed(4);
+      document.getElementById('f_test_f1_int8').value=ti.non_background.f1.toFixed(4);
+      document.getElementById('f_test_recall_f32').value=tf.non_background.recall.toFixed(4);
+      document.getElementById('f_test_precision_f32').value=tf.non_background.precision.toFixed(4);
+      document.getElementById('f_test_f1_f32').value=tf.non_background.f1.toFixed(4);
+      document.getElementById('f_test_cm_tn').value=cm[0][0];
+      document.getElementById('f_test_cm_fp').value=cm[0][1];
+      document.getElementById('f_test_cm_fn').value=cm[1][0];
+      document.getElementById('f_test_cm_tp').value=cm[1][1];
+    }
+    if(v){
+      const vi=v.int8;
+      document.getElementById('f_val_recall_int8').value=vi.non_background.recall.toFixed(4);
+      document.getElementById('f_val_precision_int8').value=vi.non_background.precision.toFixed(4);
+      document.getElementById('f_val_f1_int8').value=vi.non_background.f1.toFixed(4);
+    }
+  }
+
+  function buildCSVRow(){
+    const now=new Date();
+    const date=now.toISOString().split('T')[0];
+    const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const fields=[
+      date, time,
+      document.getElementById('runType').value,
+      '"'+document.getElementById('notes').value.replace(/"/g,'""')+'"',
+      document.getElementById('f_test_recall_int8').value,
+      document.getElementById('f_test_precision_int8').value,
+      document.getElementById('f_test_f1_int8').value,
+      document.getElementById('f_val_recall_int8').value,
+      document.getElementById('f_val_precision_int8').value,
+      document.getElementById('f_val_f1_int8').value,
+      document.getElementById('f_test_recall_f32').value,
+      document.getElementById('f_test_precision_f32').value,
+      document.getElementById('f_test_f1_f32').value,
+      document.getElementById('f_test_cm_tn').value,
+      document.getElementById('f_test_cm_fp').value,
+      document.getElementById('f_test_cm_fn').value,
+      document.getElementById('f_test_cm_tp').value,
+      document.getElementById('f_inferencing_ms').value||'',
+      document.getElementById('f_peak_ram_kb').value||'',
+      document.getElementById('f_flash_kb').value||''
+    ];
+    return fields.join(',');
+  }
+
+  const CSV_HEADER='date,time,run_type,notes,test_recall_int8,test_precision_int8,test_f1_int8,val_recall_int8,val_precision_int8,val_f1_int8,test_recall_f32,test_precision_f32,test_f1_f32,test_cm_tn,test_cm_fp,test_cm_fn,test_cm_tp,inferencing_ms,peak_ram_kb,flash_kb';
+
+  function exportCSV(){
+    const row=buildCSVRow();
+    const blob=new Blob([CSV_HEADER+'\n'+row+'\n'],{type:'text/csv'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='skisafe_run_'+new Date().toISOString().split('T')[0]+'.csv';
+    a.click();
+    const msg=document.getElementById('successMsg');
+    msg.style.display='block';
+    setTimeout(()=>msg.style.display='none',5000);
+  }
+
+  function togglePreview(){
+    const p=document.getElementById('csvPreview');
+    if(p.style.display==='block'){p.style.display='none';return;}
+    document.getElementById('csvPreviewContent').textContent=CSV_HEADER+'\n'+buildCSVRow();
+    p.style.display='block';
+  }
+
+  function loadSample(){
+    document.getElementById('jsonInput').value=`{"version":6,"validation":{"int8":{"support":3271680,"confusion_matrix":[[3271148,168],[81,283]],"non_background":{"precision":0.6274944567627494,"recall":0.7774725274725275,"f1":0.694478527607362},"classification_report":{"0":{"precision":0.9999752386641229,"recall":0.9999486445210429,"f1-score":0.999961941415764,"support":3271316},"1":{"precision":0.6274944567627494,"recall":0.7774725274725275,"f1-score":0.694478527607362,"support":364},"accuracy":0.9999238923122066,"macro avg":{"precision":0.8137348477134361,"recall":0.8887105859967852,"f1-score":0.8472202345115629,"support":3271680},"weighted avg":{"precision":0.9999337972625764,"recall":0.9999238923122066,"f1-score":0.9999279539956538,"support":3271680}},"class_names":["_background","Human"]},"float32":{"support":3271680,"confusion_matrix":[[3271130,182],[70,298]],"non_background":{"precision":0.6208333333333333,"recall":0.8097826086956522,"f1":0.7028301886792454},"classification_report":{"0":{"precision":0.9999786011249694,"recall":0.9999443648297686,"f1-score":0.9999614826843267,"support":3271312},"1":{"precision":0.6208333333333333,"recall":0.8097826086956522,"f1-score":0.7028301886792454,"support":368},"accuracy":0.9999229753521127,"macro avg":{"precision":0.8104059672291514,"recall":0.9048634867627103,"f1-score":0.8513958356817861,"support":3271680},"weighted avg":{"precision":0.9999359546991126,"recall":0.9999229753521127,"f1-score":0.9999280612261786,"support":3271680}},"class_names":["_background","Human"]}},"test":{"int8":{"support":445,"confusion_matrix":[[63494,129],[242,215]],"non_background":{"precision":0.625,"recall":0.47045951859956237,"f1":0.5368289637952559},"classification_report":{"0":{"precision":0.9962030877369148,"recall":0.9979724313534414,"f1-score":0.9970869746150645,"support":63623},"1":{"precision":0.625,"recall":0.47045951859956237,"f1-score":0.5368289637952559,"support":457},"accuracy":0.9942103620474407,"macro avg":{"precision":0.8106015438684574,"recall":0.7342159749765018,"f1-score":0.7669579692051602,"support":64080},"weighted avg":{"precision":0.9935557748296775,"recall":0.9942103620474407,"f1-score":0.9938045477900855,"support":64080}},"class_names":["_background","Human"]},"float32":{"support":445,"confusion_matrix":[[63486,135],[228,231]],"non_background":{"precision":0.6311475409836066,"recall":0.5032679738562091,"f1":0.5599999999999999},"classification_report":{"0":{"precision":0.9964215086166306,"recall":0.9978780591314189,"f1-score":0.9971492519731417,"support":63621},"1":{"precision":0.6311475409836066,"recall":0.5032679738562091,"f1-score":0.5599999999999999,"support":459},"accuracy":0.9943352059925094,"macro avg":{"precision":0.8137845248001185,"recall":0.750573016493814,"f1-score":0.7785746259865709,"support":64080},"weighted avg":{"precision":0.9938050799158884,"recall":0.9943352059925094,"f1-score":0.9940179862637837,"support":64080}},"class_names":["_background","Human"]}}}`;
+    parseAndRender();
+  }
+
+  function clearAll(){
+    document.getElementById('jsonInput').value='';
+    document.getElementById('dashboard').className='';
+    document.getElementById('logSection').className='';
+    document.getElementById('errorMsg').style.display='none';
+    parsedData=null;
+  }
+</script>
+</body>
+</html>
