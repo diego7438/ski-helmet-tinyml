@@ -496,6 +496,12 @@ p3 &lt;- ggplot(runs, aes(x=run_number, y=test_f1_int8)) +
     try{
       const data=JSON.parse(raw);
       parsedData=data;
+      if(!data.test){
+        currentView='validation';
+        setView('validation');
+        err.textContent='⚠️ No test data found — showing validation set.';
+        err.style.display='block';
+      }
       renderDashboard(data);
       prefillForm(data);
       document.getElementById('dashboard').className='visible';
