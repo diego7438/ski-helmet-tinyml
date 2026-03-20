@@ -37,7 +37,7 @@ Alert system (in development)
 
 ```
 ski-helmet-tinyml/
-├── README.md                    ← You are here
+├── Detailed_README.md                    ← You are here
 ├── skisafe_dashboard_v2.html    ← Model performance dashboard
 ├── skisafe_runs.csv             ← Master run log (append each retrain)
 └── r_scripts/
