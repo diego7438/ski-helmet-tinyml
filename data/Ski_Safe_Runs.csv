@@ -1,3 +1,4 @@
 date,time,run_type,notes,test_recall_int8,test_precision_int8,test_f1_int8,val_recall_int8,val_precision_int8,val_f1_int8,test_recall_f32,test_precision_f32,test_f1_f32,test_cm_tn,test_cm_fp,test_cm_fn,test_cm_tp,inferencing_ms,peak_ram_kb,flash_kb
 2026-03-20,13:38:00,Object Detection / Label Fix,Baseline Run,0.4705,0.625,0.5368,0.8043,0.5988,0.6865,0.5033,0.6311,0.56,63494,129,242,215,789,119.4,80.9
 2026-03-20,14:09:00,Model Testing,Baseline model testing,0.5491,0.6425,0.5922,0.8043,0.5988,0.6865,0.5656,0.6174,0.5903,63469,143,211,257,NA,NA,NA
+2026-03-22,08:03:00,Model Testing,Fixed 120 labels,0.577,0.5425,0.5592,0.8168,0.5534,0.6598,0.6105,0.5533,0.5805,67964,237,206,281,941,119.4,80.9

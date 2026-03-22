@@ -1,0 +1,61 @@
+---
+title: "Ski Safe Runs Update"
+output: pdf_document
+--------------------
+
+```{r setup, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readr)
+library(here)
+```
+
+## Locate newest run file
+
+```{r}
+# Find all matching files in project root
+files <- list.files(
+  path = here(),
+  pattern = "SkiSafe Run .*\\.csv",
+  full.names = TRUE
+)
+
+# Pick the most recently modified file
+latest_file <- files[which.max(file.info(files)$mtime)]
+
+latest_file
+```
+
+## Latest file detected
+
+```{r}
+cat("Latest file:", latest_file, "\n")
+```
+
+## Load and update master dataset
+
+```{r}
+# Read data
+new_run <- read_csv(latest_file)
+master_path <- here("data", "Ski_Safe_Runs.csv")
+master <- read_csv(master_path)
+
+# Append and deduplicate
+updated_master <- bind_rows(master, new_run) %>% distinct()
+```
+
+## Save updated dataset
+
+```{r}
+write_csv(updated_master, master_path)
+```
+
+## Summary
+
+```{r}
+tibble(
+  rows_before = nrow(master),
+  rows_added = nrow(updated_master) - nrow(master),
+  rows_after = nrow(updated_master),
+  file_used = latest_file
+)
+```
