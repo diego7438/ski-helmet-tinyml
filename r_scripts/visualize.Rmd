@@ -2,7 +2,7 @@
 title: "SkiSafe Model Progress"
 author: "Diego"
 date: "`r Sys.Date()`"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include = FALSE}
@@ -54,7 +54,7 @@ p2 <- ggplot(runs, aes(x=test_precision_int8, y=test_recall_int8, color=run_numb
   labs(title="Precision vs Recall Tradeoff", x="Precision", y="Recall", color="Run #") +
   theme_dark() +
   theme(plot.background=element_rect(fill="#0a1628"), panel.background=element_rect(fill="#112240"),
-        text=element_text(color="#e8f4f8"), axis.text=element_text(color="#7a9bb5"))
+        text=element_text(color="indianred4"), axis.text=element_text(color="#7a9bb5"))
 ```
 
 
@@ -75,5 +75,10 @@ p3 <- ggplot(runs, aes(x=run_number, y=test_f1_int8)) +
 # Combine with patchwork
 (p1 / (p2 | p3)) +
   plot_annotation(title="SkiSafe Model Progress", theme=theme(plot.background=element_rect(fill="#0a1628"), title=element_text(color="#e8f4f8")))
+```
+```{r}
+p1
+p2
+p3
 ```
 
